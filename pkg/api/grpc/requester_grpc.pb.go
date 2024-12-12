@@ -19,200 +19,89 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	RequestService_CreateRequest_FullMethodName       = "/Requester.RequestService/CreateRequest"
-	RequestService_GetRequest_FullMethodName          = "/Requester.RequestService/GetRequest"
-	RequestService_DeleteRequest_FullMethodName       = "/Requester.RequestService/DeleteRequest"
-	RequestService_UpdateRequestStatus_FullMethodName = "/Requester.RequestService/UpdateRequestStatus"
+	RequesterService_LaunchService_FullMethodName = "/requester.RequesterService/LaunchService"
 )
 
-// RequestServiceClient is the client API for RequestService service.
+// RequesterServiceClient is the client API for RequesterService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type RequestServiceClient interface {
-	CreateRequest(ctx context.Context, in *CreateRequestInput, opts ...grpc.CallOption) (*RequestResponse, error)
-	GetRequest(ctx context.Context, in *GetRequestInput, opts ...grpc.CallOption) (*RequestResponse, error)
-	DeleteRequest(ctx context.Context, in *DeleteRequestInput, opts ...grpc.CallOption) (*DeleteResponse, error)
-	UpdateRequestStatus(ctx context.Context, in *UpdateRequestStatusInput, opts ...grpc.CallOption) (*RequestResponse, error)
+type RequesterServiceClient interface {
+	LaunchService(ctx context.Context, in *LaunchServiceIn, opts ...grpc.CallOption) (*LaunchServiceOut, error)
 }
 
-type requestServiceClient struct {
+type requesterServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewRequestServiceClient(cc grpc.ClientConnInterface) RequestServiceClient {
-	return &requestServiceClient{cc}
+func NewRequesterServiceClient(cc grpc.ClientConnInterface) RequesterServiceClient {
+	return &requesterServiceClient{cc}
 }
 
-func (c *requestServiceClient) CreateRequest(ctx context.Context, in *CreateRequestInput, opts ...grpc.CallOption) (*RequestResponse, error) {
-	out := new(RequestResponse)
-	err := c.cc.Invoke(ctx, RequestService_CreateRequest_FullMethodName, in, out, opts...)
+func (c *requesterServiceClient) LaunchService(ctx context.Context, in *LaunchServiceIn, opts ...grpc.CallOption) (*LaunchServiceOut, error) {
+	out := new(LaunchServiceOut)
+	err := c.cc.Invoke(ctx, RequesterService_LaunchService_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *requestServiceClient) GetRequest(ctx context.Context, in *GetRequestInput, opts ...grpc.CallOption) (*RequestResponse, error) {
-	out := new(RequestResponse)
-	err := c.cc.Invoke(ctx, RequestService_GetRequest_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *requestServiceClient) DeleteRequest(ctx context.Context, in *DeleteRequestInput, opts ...grpc.CallOption) (*DeleteResponse, error) {
-	out := new(DeleteResponse)
-	err := c.cc.Invoke(ctx, RequestService_DeleteRequest_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *requestServiceClient) UpdateRequestStatus(ctx context.Context, in *UpdateRequestStatusInput, opts ...grpc.CallOption) (*RequestResponse, error) {
-	out := new(RequestResponse)
-	err := c.cc.Invoke(ctx, RequestService_UpdateRequestStatus_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// RequestServiceServer is the server API for RequestService service.
-// All implementations must embed UnimplementedRequestServiceServer
+// RequesterServiceServer is the server API for RequesterService service.
+// All implementations must embed UnimplementedRequesterServiceServer
 // for forward compatibility
-type RequestServiceServer interface {
-	CreateRequest(context.Context, *CreateRequestInput) (*RequestResponse, error)
-	GetRequest(context.Context, *GetRequestInput) (*RequestResponse, error)
-	DeleteRequest(context.Context, *DeleteRequestInput) (*DeleteResponse, error)
-	UpdateRequestStatus(context.Context, *UpdateRequestStatusInput) (*RequestResponse, error)
-	mustEmbedUnimplementedRequestServiceServer()
+type RequesterServiceServer interface {
+	LaunchService(context.Context, *LaunchServiceIn) (*LaunchServiceOut, error)
+	mustEmbedUnimplementedRequesterServiceServer()
 }
 
-// UnimplementedRequestServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedRequestServiceServer struct {
+// UnimplementedRequesterServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedRequesterServiceServer struct {
 }
 
-func (UnimplementedRequestServiceServer) CreateRequest(context.Context, *CreateRequestInput) (*RequestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateRequest not implemented")
+func (UnimplementedRequesterServiceServer) LaunchService(context.Context, *LaunchServiceIn) (*LaunchServiceOut, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LaunchService not implemented")
 }
-func (UnimplementedRequestServiceServer) GetRequest(context.Context, *GetRequestInput) (*RequestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRequest not implemented")
-}
-func (UnimplementedRequestServiceServer) DeleteRequest(context.Context, *DeleteRequestInput) (*DeleteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteRequest not implemented")
-}
-func (UnimplementedRequestServiceServer) UpdateRequestStatus(context.Context, *UpdateRequestStatusInput) (*RequestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateRequestStatus not implemented")
-}
-func (UnimplementedRequestServiceServer) mustEmbedUnimplementedRequestServiceServer() {}
+func (UnimplementedRequesterServiceServer) mustEmbedUnimplementedRequesterServiceServer() {}
 
-// UnsafeRequestServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to RequestServiceServer will
+// UnsafeRequesterServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to RequesterServiceServer will
 // result in compilation errors.
-type UnsafeRequestServiceServer interface {
-	mustEmbedUnimplementedRequestServiceServer()
+type UnsafeRequesterServiceServer interface {
+	mustEmbedUnimplementedRequesterServiceServer()
 }
 
-func RegisterRequestServiceServer(s grpc.ServiceRegistrar, srv RequestServiceServer) {
-	s.RegisterService(&RequestService_ServiceDesc, srv)
+func RegisterRequesterServiceServer(s grpc.ServiceRegistrar, srv RequesterServiceServer) {
+	s.RegisterService(&RequesterService_ServiceDesc, srv)
 }
 
-func _RequestService_CreateRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateRequestInput)
+func _RequesterService_LaunchService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LaunchServiceIn)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RequestServiceServer).CreateRequest(ctx, in)
+		return srv.(RequesterServiceServer).LaunchService(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RequestService_CreateRequest_FullMethodName,
+		FullMethod: RequesterService_LaunchService_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RequestServiceServer).CreateRequest(ctx, req.(*CreateRequestInput))
+		return srv.(RequesterServiceServer).LaunchService(ctx, req.(*LaunchServiceIn))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RequestService_GetRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRequestInput)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RequestServiceServer).GetRequest(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: RequestService_GetRequest_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RequestServiceServer).GetRequest(ctx, req.(*GetRequestInput))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RequestService_DeleteRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteRequestInput)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RequestServiceServer).DeleteRequest(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: RequestService_DeleteRequest_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RequestServiceServer).DeleteRequest(ctx, req.(*DeleteRequestInput))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RequestService_UpdateRequestStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateRequestStatusInput)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RequestServiceServer).UpdateRequestStatus(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: RequestService_UpdateRequestStatus_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RequestServiceServer).UpdateRequestStatus(ctx, req.(*UpdateRequestStatusInput))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// RequestService_ServiceDesc is the grpc.ServiceDesc for RequestService service.
+// RequesterService_ServiceDesc is the grpc.ServiceDesc for RequesterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var RequestService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Requester.RequestService",
-	HandlerType: (*RequestServiceServer)(nil),
+var RequesterService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "requester.RequesterService",
+	HandlerType: (*RequesterServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateRequest",
-			Handler:    _RequestService_CreateRequest_Handler,
-		},
-		{
-			MethodName: "GetRequest",
-			Handler:    _RequestService_GetRequest_Handler,
-		},
-		{
-			MethodName: "DeleteRequest",
-			Handler:    _RequestService_DeleteRequest_Handler,
-		},
-		{
-			MethodName: "UpdateRequestStatus",
-			Handler:    _RequestService_UpdateRequestStatus_Handler,
+			MethodName: "LaunchService",
+			Handler:    _RequesterService_LaunchService_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
