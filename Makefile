@@ -130,4 +130,4 @@ grpc-gen:
 			--go_opt=paths=source_relative \
 			--go-grpc_out=${GRPC_PKG_DIR} \
 			--go-grpc_opt=paths=source_relative \
-	${GRPC_API_PROTO_PATH}/requester.proto
+	${GRPC_API_PROTO_PATH}/${APP_NAME}.proto
