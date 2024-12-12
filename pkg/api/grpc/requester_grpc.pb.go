@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -26,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RequesterServiceClient interface {
-	LaunchService(ctx context.Context, in *LaunchServiceIn, opts ...grpc.CallOption) (*LaunchServiceOut, error)
+	LaunchService(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type requesterServiceClient struct {
@@ -37,8 +38,8 @@ func NewRequesterServiceClient(cc grpc.ClientConnInterface) RequesterServiceClie
 	return &requesterServiceClient{cc}
 }
 
-func (c *requesterServiceClient) LaunchService(ctx context.Context, in *LaunchServiceIn, opts ...grpc.CallOption) (*LaunchServiceOut, error) {
-	out := new(LaunchServiceOut)
+func (c *requesterServiceClient) LaunchService(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, RequesterService_LaunchService_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func (c *requesterServiceClient) LaunchService(ctx context.Context, in *LaunchSe
 // All implementations must embed UnimplementedRequesterServiceServer
 // for forward compatibility
 type RequesterServiceServer interface {
-	LaunchService(context.Context, *LaunchServiceIn) (*LaunchServiceOut, error)
+	LaunchService(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRequesterServiceServer()
 }
 
@@ -58,7 +59,7 @@ type RequesterServiceServer interface {
 type UnimplementedRequesterServiceServer struct {
 }
 
-func (UnimplementedRequesterServiceServer) LaunchService(context.Context, *LaunchServiceIn) (*LaunchServiceOut, error) {
+func (UnimplementedRequesterServiceServer) LaunchService(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LaunchService not implemented")
 }
 func (UnimplementedRequesterServiceServer) mustEmbedUnimplementedRequesterServiceServer() {}
@@ -75,7 +76,7 @@ func RegisterRequesterServiceServer(s grpc.ServiceRegistrar, srv RequesterServic
 }
 
 func _RequesterService_LaunchService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LaunchServiceIn)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -87,7 +88,7 @@ func _RequesterService_LaunchService_Handler(srv interface{}, ctx context.Contex
 		FullMethod: RequesterService_LaunchService_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RequesterServiceServer).LaunchService(ctx, req.(*LaunchServiceIn))
+		return srv.(RequesterServiceServer).LaunchService(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

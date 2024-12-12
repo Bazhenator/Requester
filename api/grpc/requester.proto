@@ -1,12 +1,9 @@
 syntax = "proto3";
 
 package requester;
+import "google/protobuf/empty.proto";
 option go_package = "github.com/Bazhenator/requester";
 
 service RequesterService {
-  rpc LaunchService (LaunchServiceIn) returns (LaunchServiceOut); // LaunchService starts cleaning service
+  rpc LaunchService (google.protobuf.Empty) returns (google.protobuf.Empty); // LaunchService starts cleaning service
 }
-
-message LaunchServiceIn {}
-
-message LaunchServiceOut {}
