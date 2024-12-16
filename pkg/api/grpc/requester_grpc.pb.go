@@ -20,7 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	RequesterService_LaunchService_FullMethodName = "/requester.RequesterService/LaunchService"
+	RequesterService_LaunchService_FullMethodName          = "/requester.RequesterService/LaunchService"
+	RequesterService_CreateStatisticsReport_FullMethodName = "/requester.RequesterService/CreateStatisticsReport"
 )
 
 // RequesterServiceClient is the client API for RequesterService service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RequesterServiceClient interface {
 	LaunchService(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateStatisticsReport(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type requesterServiceClient struct {
@@ -47,11 +49,21 @@ func (c *requesterServiceClient) LaunchService(ctx context.Context, in *emptypb.
 	return out, nil
 }
 
+func (c *requesterServiceClient) CreateStatisticsReport(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, RequesterService_CreateStatisticsReport_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RequesterServiceServer is the server API for RequesterService service.
 // All implementations must embed UnimplementedRequesterServiceServer
 // for forward compatibility
 type RequesterServiceServer interface {
 	LaunchService(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	CreateStatisticsReport(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRequesterServiceServer()
 }
 
@@ -61,6 +73,9 @@ type UnimplementedRequesterServiceServer struct {
 
 func (UnimplementedRequesterServiceServer) LaunchService(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LaunchService not implemented")
+}
+func (UnimplementedRequesterServiceServer) CreateStatisticsReport(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateStatisticsReport not implemented")
 }
 func (UnimplementedRequesterServiceServer) mustEmbedUnimplementedRequesterServiceServer() {}
 
@@ -93,6 +108,24 @@ func _RequesterService_LaunchService_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RequesterService_CreateStatisticsReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RequesterServiceServer).CreateStatisticsReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RequesterService_CreateStatisticsReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RequesterServiceServer).CreateStatisticsReport(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RequesterService_ServiceDesc is the grpc.ServiceDesc for RequesterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -103,6 +136,10 @@ var RequesterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LaunchService",
 			Handler:    _RequesterService_LaunchService_Handler,
+		},
+		{
+			MethodName: "CreateStatisticsReport",
+			Handler:    _RequesterService_CreateStatisticsReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
