@@ -2,7 +2,7 @@ package logic
 
 import (
 	"context"
-	"os"
+	"fmt"
 	"sync"
 	"time"
 
@@ -15,6 +15,11 @@ import (
 	"github.com/Bazhenator/requester/pkg/connections/cleaner"
 	"github.com/Bazhenator/requester/pkg/connections/generator"
 	"github.com/Bazhenator/tools/src/logger"
+	"github.com/jung-kurt/gofpdf"
+)
+
+const (
+	serviceSize = 10
 )
 
 type Dispatcher struct {
@@ -62,6 +67,8 @@ func (d *Dispatcher) LaunchDispatcher(ctx context.Context) error {
 		}
 	}()
 
+	time.Sleep(time.Second * 3)
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 
@@ -73,18 +80,18 @@ func (d *Dispatcher) LaunchDispatcher(ctx context.Context) error {
 			select {
 			case <-ctx.Done():
 				d.l.InfoCtx(ctx, "Dispatcher loop stopped due to context cancellation")
-				d.TotalTime = time.Since(timer)
-
+				
 				return
-
 			default:
 				resp, err := d.cleaner.Client.GetAvailableTeams(ctx, &emptypb.Empty{})
 				if err != nil {
 					d.l.ErrorCtx(ctx, "Failed to get available teams", logger.NewErrorField(err))
 
-					time.Sleep(time.Second)
+					time.Sleep(time.Second * 3)
 					continue
 				}
+
+				time.Sleep(time.Second)
 
 				if len(resp.TeamsIds) == 0 {
 					d.l.Debug("No available teams, waiting...")
@@ -95,17 +102,21 @@ func (d *Dispatcher) LaunchDispatcher(ctx context.Context) error {
 
 				reqResp, err := d.buffer.Client.PopTop(ctx, &emptypb.Empty{})
 				if err != nil {
-					d.l.ErrorCtx(ctx, "Failed to pop request from buffer", logger.NewErrorField(err))
+					teamsAmount := 0
 
-					time.Sleep(time.Second)
-					continue
-				}
+					for teamsAmount != serviceSize {
+						time.Sleep(time.Second * 5)
+						resp, _ := d.cleaner.Client.GetAvailableTeams(ctx, &emptypb.Empty{})
+						teamsAmount = len(resp.GetTeamsIds())
+					}
 
-				if reqResp == nil || reqResp.GetReq() == nil {
-					d.l.InfoCtx(ctx, "Buffer is empty, stopping dispatcher loop")
+					d.TotalTime = time.Since(timer)
+					d.l.ErrorCtx(ctx, "Buffer is empty, stopping dispatcher loop", logger.NewErrorField(err))
 
 					return
 				}
+
+				time.Sleep(time.Second)
 
 				for _, teamID := range resp.TeamsIds {
 					req, err := d.cleaner.Client.ProceedCleaning(ctx, &cGrpc.ProceedCleaningIn{
@@ -136,6 +147,8 @@ func (d *Dispatcher) LaunchDispatcher(ctx context.Context) error {
 						break
 					}
 				}
+
+				time.Sleep(time.Second)
 			}
 		}
 	}()
@@ -146,24 +159,82 @@ func (d *Dispatcher) LaunchDispatcher(ctx context.Context) error {
 }
 
 func (d *Dispatcher) CreateStatisticsReport(ctx context.Context) error {
-	reportFile, err := os.Create("statistics.txt")
-	if err != nil {
-		d.l.Error("failed to create report file", logger.NewErrorField(err))
-		return err
-	}
-	defer reportFile.Close()
+	reportFileName := "statistics.pdf"
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.SetFont("Arial", "", 12)
+	pdf.AddPage()
+
+	pdf.SetFont("Arial", "B", 16)
+	pdf.Cell(40, 10, "Statistics Report")
+	pdf.Ln(20)
 
 	resp, err := d.cleaner.Client.GetTeamsStats(ctx, &emptypb.Empty{})
-	for _, i := range resp.Teams {
+	if err != nil {
+		d.l.Error("failed to fetch team statistics", logger.NewErrorField(err))
+		return err
+	}
+
+	for _, team := range resp.Teams {
 		d.TeamsStats = append(d.TeamsStats, &dto.TeamStat{
-			Id:                 i.GetId(),
-			Speed:              i.GetSpeed(),
-			ProccessedRequests: i.GetProcessedRequests(),
-			TotalBusyTime:      i.GetTotalBusyTime(),
+			Id:                 team.GetId(),
+			Speed:              team.GetSpeed(),
+			ProccessedRequests: team.GetProcessedRequests(),
+			TotalBusyTime:      team.GetTotalBusyTime(),
 		})
 	}
 
-	//TODO: add creating report logic
+	totalTime := d.TotalTime.Seconds()
 
+	pdf.SetFont("Arial", "B", 12)
+	pdf.Cell(40, 10, "Team Statistics")
+	pdf.Ln(10)
+
+	pdf.SetFont("Arial", "", 10)
+	pdf.SetFillColor(200, 200, 200)
+	pdf.CellFormat(30, 10, "ID", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(30, 10, "Speed", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(50, 10, "Processed Requests", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(50, 10, "Total Busy Time", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(30, 10, "Load (%)", "1", 1, "C", true, 0, "")
+
+	for _, teamStat := range d.TeamsStats {
+		load := (teamStat.TotalBusyTime / totalTime) * 100
+		pdf.CellFormat(30, 10, fmt.Sprintf("%d", teamStat.Id), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 10, fmt.Sprintf("%d", teamStat.Speed), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(50, 10, fmt.Sprintf("%d", teamStat.ProccessedRequests), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(50, 10, fmt.Sprintf("%.2f", teamStat.TotalBusyTime) + "sec", "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 10, fmt.Sprintf("%.2f", load), "1", 1, "C", false, 0, "")
+	}
+
+	pdf.Ln(10)
+	pdf.SetFont("Arial", "B", 12)
+	pdf.Cell(40, 10, "Request Statistics")
+	pdf.Ln(10)
+
+	pdf.SetFont("Arial", "", 10)
+	pdf.SetFillColor(200, 200, 200)
+	pdf.CellFormat(20, 10, "ID", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(30, 10, "Generator ID", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(30, 10, "Team ID", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(20, 10, "Priority", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(40, 10, "Time in Cleaner", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(40, 10, "Time in Buffer", "1", 1, "C", true, 0, "")
+
+	for _, reqStat := range d.ReqsStats {
+		pdf.CellFormat(20, 10, fmt.Sprintf("%d", reqStat.Id), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 10, fmt.Sprintf("%d", reqStat.GeneratorId), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 10, fmt.Sprintf("%d", reqStat.TeamId), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(20, 10, fmt.Sprintf("%d", reqStat.Priority), "1", 0, "C", false, 0, "")
+		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f", reqStat.TimeInCleaner) + "sec", "1", 0, "C", false, 0, "")
+		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f", reqStat.TimeInBuffer) + "sec", "1", 1, "C", false, 0, "")
+	}
+
+	if err := pdf.OutputFileAndClose(reportFileName); err != nil {
+		d.l.Error("failed to save PDF report", logger.NewErrorField(err))
+		return err
+	}
+
+	d.l.Info("PDF report generated successfully", logger.NewField("file", reportFileName))
 	return nil
 }
