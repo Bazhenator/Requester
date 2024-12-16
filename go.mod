@@ -3,13 +3,13 @@ module github.com/Bazhenator/requester
 go 1.23.4
 
 require (
-	github.com/Bazhenator/buffer v0.0.0-20241211203601-41201e1c9553
-	github.com/Bazhenator/cleaner v0.0.0
-	github.com/Bazhenator/generator v0.0.0-20241211200208-a951d9701834
+	github.com/Bazhenator/buffer v0.0.0-20241215220935-e8bd9c528ba1
+	github.com/Bazhenator/cleaner v1.0.0
+	github.com/Bazhenator/generator v0.0.0-20241215220840-88bf27bcf3d0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.57.0
 	go.uber.org/zap v1.18.1
-	google.golang.org/grpc v1.68.1
+	google.golang.org/grpc v1.69.0
 )
 
 require google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect

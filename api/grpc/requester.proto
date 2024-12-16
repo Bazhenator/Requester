@@ -6,4 +6,5 @@ option go_package = "github.com/Bazhenator/requester";
 
 service RequesterService {
   rpc LaunchService (google.protobuf.Empty) returns (google.protobuf.Empty); // LaunchService starts cleaning service
+  rpc CreateStatisticsReport(google.protobuf.Empty) returns (google.protobuf.Empty); // CreateStatisticsReport creates statistics' report
 }

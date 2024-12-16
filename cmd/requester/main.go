@@ -21,6 +21,12 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/Bazhenator/requester/configs"
+	"github.com/Bazhenator/requester/internal/delivery"
+	"github.com/Bazhenator/requester/internal/logic"
+	pb "github.com/Bazhenator/requester/pkg/api/grpc"
+	bufferConnection "github.com/Bazhenator/requester/pkg/connections/buffer"
+	cleanerConnection "github.com/Bazhenator/requester/pkg/connections/cleaner"
+	generatorConnection "github.com/Bazhenator/requester/pkg/connections/generator"
 	"github.com/Bazhenator/tools/src/logger"
 	middlewareLogging "github.com/Bazhenator/tools/src/middleware/log"
 	grpcListener "github.com/Bazhenator/tools/src/server/grpc/listener"
@@ -53,7 +59,7 @@ func run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Initializing requester's grpc server 
+	// Initializing requester's grpc server
 	grpcServer := newGrpcServer(config, l.Logger)
 	defer grpcServer.GracefulStop()
 
@@ -73,7 +79,33 @@ func run() error {
 
 	reflection.Register(grpcServer)
 
-	// TODO: add repos/logic/delivery configs
+	// Creating connection to buffer service
+	bufferCon, err := bufferConnection.NewConnection(ctx, l, config.BufferHost)
+	if err != nil {
+		return err
+	}
+	defer bufferCon.Close()
+
+	// Creating connection to generator service
+	generatorCon, err := generatorConnection.NewConnection(ctx, l, config.GeneratorHost)
+	if err != nil {
+		return err
+	}
+	defer generatorCon.Close()
+
+	// Creating connection to cleaner service
+	cleanerCon, err := cleanerConnection.NewConnection(ctx, l, config.CleanerHost)
+	if err != nil {
+		return err
+	}
+	defer cleanerCon.Close()
+
+	// Initializing logic
+	logic := logic.NewDispatcher(config, l, *bufferCon, *generatorCon, *cleanerCon)
+
+	// Initializing delivery
+	server := delivery.NewDispatcherServer(config, l, logic)
+	pb.RegisterRequesterServiceServer(grpcServer, server)
 
 	lis, deferGrpc, err := grpcListener.NewGrpcListener(config.Grpc)
 	if err != nil {
@@ -101,7 +133,7 @@ func newGrpcServer(c *configs.Config, l *zap.Logger) *grpc.Server {
 		grpcMiddleware.WithStreamServerChain(
 			grpcRecovery.StreamServerInterceptor(),
 			grpcCtxTags.StreamServerInterceptor(),
-			otelgrpc.StreamServerInterceptor(), 		
+			otelgrpc.StreamServerInterceptor(),
 			grpcZap.StreamServerInterceptor(l, grpcZap.WithMessageProducer(middlewareLogging.LogsProducer)),
 		),
 	)
